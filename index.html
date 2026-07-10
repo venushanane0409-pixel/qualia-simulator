@@ -735,7 +735,7 @@ header h1{font-size:2.618rem;line-height:1.128}
 .field-note b{color:var(--rose-dark)}
 .stat-sub{display:block;font-size:0.79rem;font-family:"Zen Kaku Gothic New",sans-serif;font-weight:400;color:var(--text-secondary);margin-top:var(--s1)}
 /* --- コース別残りカード --- */
-.remain-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--s3);margin-top:var(--s2)}
+.remain-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:var(--s3);margin-top:var(--s2)}
 .remain-card{background:#FFFFFF;border:1px solid var(--glass-border);border-radius:var(--s3);padding:var(--s3);text-align:center;box-shadow:0 4px 16px rgba(23,48,110,0.08)}
 .remain-card .rc-course{font-size:0.79rem;font-weight:700;color:var(--text-secondary)}
 .remain-card .rc-num{font-size:1rem;color:var(--text-primary);margin:var(--s1) 0}
@@ -776,9 +776,48 @@ header h1{font-size:2.618rem;line-height:1.128}
 .add-row-btn{margin:var(--s1) 0 var(--s3);padding:var(--s2) var(--s3);border:1px dashed var(--rose-medium);background:#FFFFFF;color:var(--rose-dark);border-radius:var(--s2);font-size:0.79rem;font-weight:700;cursor:pointer;transition:all .2s}
 .add-row-btn:hover{background:rgba(61,91,170,0.06)}
 .mr-empty{font-size:0.75rem;color:var(--text-secondary);padding:var(--s2)}
+/* --- モバイル最適化: 横スクロール撲滅(全幅対応の防御的CSS) --- */
+.glass-card,.pos-block,.prog-line,.map-row,.remain-card,.vision-row,.vision-note,.hint,.field-note{max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+.tree{min-width:0;width:100%}
+.tree-inc{min-width:0}
+.inc-legs .leg-node{flex:1 1 0;min-width:0}
+.leg-node{overflow-wrap:anywhere}
+.vision-row{flex-wrap:wrap}
+.reg-item{min-width:0;padding:var(--s2)}
+.reg-item input{font-size:1.128rem}
+@media (max-width:720px){
+  .container{padding:var(--s3) var(--s2)}
+  .glass-card{padding:var(--s4) var(--s3)}
+  .tree-incomes{flex-direction:column;gap:var(--s3)}
+  .tree-you{width:100%;padding:var(--s2) var(--s3)}
+  .tree-you .pay{font-size:0.7rem}
+  .inc-legs{gap:var(--s1)}
+  .leg-node{font-size:0.68rem;padding:var(--s1)}
+  .inc-head{font-size:0.85rem}
+  .inc-head .pay{font-size:0.66rem}
+  .map-row{padding:var(--s2) var(--s3)}
+  .map-row .who{font-size:0.72rem}
+  .map-row .cnt{font-size:1.128rem;white-space:nowrap}
+  .remain-cards{grid-template-columns:1fr}
+  .plan-head{font-size:1.618rem}
+  .reg-item label{font-size:0.68rem}
+  .reg-item .sub{font-size:0.6rem}
+  .vision-row{font-size:0.7rem}
+  .vision-row b{font-size:1.128rem;white-space:nowrap}
+  .hint{font-size:0.7rem}
+  .pos-block{padding:var(--s3) var(--s2)}
+  .leg-row label{min-width:2.2rem;font-size:0.7rem}
+  .leg-row .leg-input{min-width:90px}
+  .name-box{flex:1 1 100%}
+  .member-reg-row .mr-member{flex:1 1 100%}
+  .payline-chip{font-size:0.68rem}
+  .stat-val{font-size:1.618rem}
+  .remain-line strong{font-size:2.618rem}
+  .vision-total strong{font-size:2.618rem}
+}
 
 /* === 進捗トラッキング CSS === */
-.reg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--s3);margin-bottom:var(--s4)}
+.reg-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s3);margin-bottom:var(--s4)}
 .reg-item{text-align:center;background:rgba(255,255,255,.6);border:1px solid var(--glass-border);border-radius:var(--s3);padding:var(--s3)}
 .reg-item label{display:block;font-size:0.79rem;font-weight:700;color:var(--rose-dark);margin-bottom:var(--s2)}
 .reg-item .sub{display:block;font-size:0.7rem;color:var(--text-secondary);font-weight:400}
