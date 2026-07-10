@@ -1,0 +1,2192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUALIA 配置シミュレーター</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS変数定義 - 黄金比スケール */
+        :root {
+            --phi: 1.618;
+            --s1: 0.382rem;
+            --s2: 0.618rem;
+            --s3: 1rem;
+            --s4: 1.618rem;
+            --s5: 2.618rem;
+            --s6: 4.236rem;
+            
+            /* カラーパレット */
+            --rose-light: #C9D6EE;
+            --rose-medium: #3D5BAA;
+            --rose-dark: #17306E;
+            --gold-gradient: linear-gradient(135deg, #3D5BAA, #17306E);
+            --text-primary: #1C2749;
+            --text-secondary: #5A6A93;
+            --bg-cream: #FDFDFF;
+            --bg-light: #EDF2FB;
+            --glass-bg: #FFFFFF;
+            --glass-border: rgba(61, 91, 170, 0.14);
+            --glass-shadow: 0 8px 32px rgba(23, 48, 110, 0.12);
+        }
+        
+        /* 基本スタイル */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "Zen Kaku Gothic New", sans-serif;
+            background: linear-gradient(160deg, var(--bg-cream), var(--bg-light));
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.618;
+            letter-spacing: 0;
+            overflow-x: hidden;
+        }
+        
+        /* レスポンシブ設定 */
+        @media (max-width: 720px) {
+            :root {
+                --s1: 0.3rem;
+                --s2: 0.5rem;
+                --s3: 0.8rem;
+                --s4: 1.3rem;
+                --s5: 2.1rem;
+                --s6: 3.4rem;
+            }
+        }
+        
+        /* コンテナ */
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: var(--s5);
+        }
+        
+        /* ヘッダー */
+        header {
+            text-align: center;
+            margin-bottom: var(--s6);
+            padding: var(--s5) 0;
+        }
+        
+        h1 {
+            font-family: "Shippori Mincho", serif;
+            font-size: var(--s6);
+            font-weight: 700;
+            letter-spacing: -0.022em;
+            line-height: 1.128;
+            margin-bottom: var(--s2);
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: var(--s4);
+            color: var(--rose-medium);
+            font-weight: 400;
+        }
+        
+        /* カードスタイル */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: var(--s4);
+            padding: var(--s5);
+            margin-bottom: var(--s5);
+        }
+        
+        /* セグメントボタン */
+        #courseSeg {
+            display: flex;
+            gap: var(--s2);
+            margin-bottom: var(--s5);
+            flex-wrap: wrap;
+        }
+        
+        .seg-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: var(--s3) var(--s4);
+            border: none;
+            border-radius: var(--s3);
+            background: #EFF3FA;
+            color: var(--text-primary);
+            font-size: var(--s3);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(23, 48, 110, 0.1);
+        }
+        
+        .seg-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(23, 48, 110, 0.15);
+        }
+        
+        .seg-btn.is-active {
+            background: var(--gold-gradient);
+            color: white;
+        }
+        
+        /* 入力エリア */
+        .input-group {
+            margin-bottom: var(--s4);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: var(--s2);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        select, input[type="number"] {
+            width: 100%;
+            padding: var(--s3);
+            border: 1px solid var(--rose-light);
+            border-radius: var(--s3);
+            background: #F8FAFE;
+            font-size: var(--s3);
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: var(--rose-medium);
+            box-shadow: 0 0 0 3px rgba(61, 91, 170, 0.2);
+        }
+        
+        /* ポジション入力エリア */
+        #positionsContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--s2);
+            margin-top: var(--s3);
+        }
+        
+        .position-item {
+            flex: 1;
+            min-width: 120px;
+            padding: var(--s3);
+            background: #EFF3FA;
+            border-radius: var(--s3);
+            box-shadow: 0 2px 8px rgba(23, 48, 110, 0.1);
+        }
+        
+        .position-item label {
+            font-size: var(--s2);
+            margin-bottom: var(--s1);
+        }
+        
+        .position-item input {
+            width: 100%;
+            padding: var(--s2);
+            border: 1px solid var(--rose-light);
+            border-radius: var(--s2);
+            background: #FFFFFF;
+        }
+        
+        /* 結果エリア */
+        .result-section {
+            margin-top: var(--s6);
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--s4);
+            flex-wrap: wrap;
+            gap: var(--s3);
+        }
+        
+        .result-title {
+            font-family: "Shippori Mincho", serif;
+            font-size: var(--s4);
+            font-weight: 700;
+            color: var(--rose-dark);
+        }
+        
+        #curTotalPt {
+            font-family: "Shippori Mincho", serif;
+            font-size: var(--s4);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        #curTitleBadge {
+            display: inline-block;
+            padding: var(--s2) var(--s3);
+            background: var(--rose-medium);
+            color: white;
+            border-radius: var(--s2);
+            font-weight: 700;
+        }
+        
+        /* 残りPt表示 */
+        .remain-pt-container {
+            text-align: center;
+            margin: var(--s6) 0;
+            padding: var(--s5);
+            background: var(--glass-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--s4);
+        }
+        
+        #remainPt {
+            font-family: "Shippori Mincho", serif;
+            font-size: var(--s6);
+            font-weight: 700;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: block;
+            margin-bottom: var(--s2);
+        }
+        
+        /* 進捗バー */
+        .progress-container {
+            margin: var(--s5) 0;
+        }
+        
+        .progress {
+            width: 100%;
+            height: var(--s4);
+            background: #EFF3FA;
+            border-radius: var(--s3);
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        #progressFill {
+            height: 100%;
+            background: var(--gold-gradient);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: var(--s3);
+        }
+        
+        #progressLabel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: var(--s3);
+        }
+        
+        /* 人数換算リスト */
+        #peopleList {
+            margin-top: var(--s5);
+        }
+        
+        .people-item {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--s3);
+            margin-bottom: var(--s2);
+            background: #EFF3FA;
+            border-radius: var(--s3);
+            box-shadow: 0 2px 8px rgba(23, 48, 110, 0.1);
+        }
+        
+        /* タイトルロードマップ */
+        #roadmap {
+            margin-top: var(--s5);
+        }
+        
+        .roadmap-item {
+            display: flex;
+            align-items: center;
+            padding: var(--s3);
+            margin-bottom: var(--s2);
+            background: #EFF3FA;
+            border-radius: var(--s3);
+            box-shadow: 0 2px 8px rgba(23, 48, 110, 0.1);
+        }
+        
+        .roadmap-title {
+            flex: 1;
+            font-weight: 700;
+        }
+        
+        .roadmap-pt {
+            font-family: "Shippori Mincho", serif;
+            font-weight: 700;
+            color: var(--rose-dark);
+        }
+        
+        /* 注意書き */
+        .note {
+            margin-top: var(--s5);
+            padding: var(--s4);
+            background: rgba(61, 91, 170, 0.2);
+            border-left: 4px solid var(--rose-medium);
+            border-radius: var(--s3);
+            font-size: var(--s2);
+            color: var(--text-secondary);
+        }
+        
+        /* ユニット入力エリア */
+        .unit-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: var(--s3);
+            margin-top: var(--s4);
+        }
+        
+        .unit-item {
+            text-align: center;
+        }
+        
+        .unit-item label {
+            font-size: var(--s2);
+            margin-bottom: var(--s1);
+        }
+        
+        .unit-item input {
+            width: 100%;
+            padding: var(--s2);
+            border: 1px solid var(--rose-light);
+            border-radius: var(--s2);
+            background: #FFFFFF;
+            text-align: center;
+        }
+    
+/* === 配置シミュレーター 追加CSS === */
+.sec-title {
+  font-family: "Shippori Mincho", serif;
+  font-size: var(--s4);
+  color: var(--rose-dark);
+  margin-bottom: var(--s3);
+}
+
+.seg-row {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  margin-bottom: var(--s4);
+}
+
+.field {
+  margin-bottom: var(--s4);
+}
+
+.field > label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: var(--s2);
+}
+
+.field select {
+  width: 100%;
+  padding: var(--s3);
+  border-radius: var(--s3);
+  border: 1px solid var(--rose-light);
+  background: #F8FAFE;
+}
+
+.hint {
+  font-size: 0.79rem;
+  color: var(--text-secondary);
+  line-height: 1.618;
+  background: rgba(61, 91, 170, 0.15);
+  padding: var(--s3);
+  border-radius: var(--s3);
+  margin-bottom: var(--s4);
+}
+
+.pos-block {
+  background: #F3F6FC;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--s3);
+  padding: var(--s4);
+  margin-bottom: var(--s3);
+}
+
+.pos-block h3 {
+  font-family: "Shippori Mincho", serif;
+  font-size: 1.272rem;
+  color: var(--rose-dark);
+  margin-bottom: var(--s3);
+}
+
+.leg-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-bottom: var(--s2);
+}
+
+.leg-row label {
+  font-size: 0.79rem;
+  color: var(--text-secondary);
+  min-width: var(--s6);
+  font-weight: 700;
+  margin: 0;
+}
+
+.leg-row input {
+  flex: 1;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--rose-light);
+  border-radius: var(--s2);
+  background: #FFFFFF;
+}
+
+.leg-row .tag-power {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--s2);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #E8EDF7;
+  color: #54639B;
+}
+
+.leg-row .tag-pay {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--s2);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--gold-gradient);
+  color: #fff;
+}
+
+.status-grid {
+  display: flex;
+  gap: var(--s4);
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: var(--s3);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.stat-label {
+  font-size: 0.79rem;
+  color: var(--text-secondary);
+}
+
+.stat-val {
+  font-family: "Shippori Mincho", serif;
+  font-size: 2.058rem;
+  color: var(--text-primary);
+}
+
+.paylines {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  margin: var(--s3) 0;
+}
+
+.payline-chip {
+  background: #EFF3FA;
+  border-radius: var(--s2);
+  padding: var(--s2) var(--s3);
+  font-size: 0.79rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+}
+
+.remain-line {
+  font-family: "Shippori Mincho", serif;
+  font-size: 1.272rem;
+  color: var(--rose-dark);
+  background: rgba(61, 91, 170, 0.18);
+  padding: var(--s3);
+  border-radius: var(--s3);
+}
+
+.plan-card {
+  border: 2px solid transparent;
+  background: linear-gradient(var(--glass-bg), var(--glass-bg)) padding-box, var(--gold-gradient) border-box;
+}
+
+.plan-head {
+  font-family: "Shippori Mincho", serif;
+  font-size: 2.058rem;
+  color: var(--rose-dark);
+  line-height: 1.272;
+  margin-bottom: var(--s4);
+}
+
+.plan-head b {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tree-viz {
+  margin: var(--s4) 0;
+  overflow-x: auto;
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s3);
+  min-width: 320px;
+}
+
+.tree-you {
+  background: var(--gold-gradient);
+  color: #fff;
+  border-radius: var(--s3);
+  padding: var(--s2) var(--s4);
+  font-weight: 700;
+  text-align: center;
+}
+
+.tree-you .pay {
+  display: block;
+  font-size: 0.79rem;
+  font-weight: 400;
+  opacity: 0.95;
+}
+
+.tree-incomes {
+  display: flex;
+  gap: var(--s4);
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.tree-inc {
+  flex: 1;
+  min-width: 150px;
+  background: #F3F6FC;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--s3);
+  padding: var(--s3);
+}
+
+.inc-head {
+  text-align: center;
+  font-weight: 700;
+  color: var(--rose-dark);
+  margin-bottom: var(--s2);
+}
+
+.inc-head .pay {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.inc-legs {
+  display: flex;
+  gap: var(--s2);
+}
+
+.leg-node {
+  flex: 1;
+  text-align: center;
+  background: #F8FAFE;
+  border-radius: var(--s2);
+  padding: var(--s2);
+  font-size: 0.75rem;
+  color: var(--text-primary);
+}
+
+.leg-node .cur {
+  display: block;
+  font-weight: 700;
+}
+
+.leg-node .final {
+  display: block;
+  color: var(--rose-dark);
+  font-weight: 700;
+}
+
+.leg-node .add {
+  display: inline-block;
+  margin: 2px 0;
+  padding: 1px 6px;
+  border-radius: var(--s2);
+  background: var(--gold-gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+
+.leg-node.is-pay {
+  outline: 2px solid var(--rose-dark);
+  outline-offset: 1px;
+}
+
+.plan-map {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: var(--s4) 0;
+}
+
+.map-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--s3);
+  background: #EFF3FA;
+  border-radius: var(--s3);
+  font-weight: 700;
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(23, 48, 110, 0.1);
+}
+
+.map-row .who {
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.map-row .cnt {
+  font-family: "Shippori Mincho", serif;
+  font-size: 1.272rem;
+  color: var(--rose-dark);
+}
+
+.plan-after {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  margin-top: var(--s3);
+}
+
+.note {
+  margin-top: var(--s4);
+  padding: var(--s4);
+  background: rgba(61, 91, 170, 0.2);
+  border-left: 4px solid var(--rose-medium);
+  border-radius: var(--s3);
+  font-size: 0.79rem;
+  color: var(--text-secondary);
+  line-height: 1.618;
+}
+
+@media (max-width: 720px) {
+  .tree-incomes {
+    flex-direction: column;
+  }
+}
+
+/* --- 追加コンポーネント --- */
+.badge{display:inline-block;padding:var(--s2) var(--s3);background:var(--rose-medium);color:#fff;border-radius:var(--s2);font-weight:700}
+.tree-main{background:var(--gold-gradient);color:#fff;border-radius:var(--s3);padding:var(--s2) var(--s4);font-weight:700;text-align:center}
+.tree-legs{display:flex;gap:var(--s2);width:100%;justify-content:center;flex-wrap:wrap}
+.map-row.total{border:1px solid var(--rose-light);background:rgba(61,91,170,0.15)}
+.tag{display:inline-block}
+.plan-detail{display:block;font-size:0.75rem;font-weight:400;color:var(--text-secondary);margin-top:2px;line-height:1.618}
+/* --- メンバー名(2段目・右寄せ) --- */
+.leg-group{padding:var(--s2) 0 var(--s3);border-bottom:1px dashed rgba(61,91,170,0.18)}
+.leg-group:last-of-type{border-bottom:none;padding-bottom:0}
+.leg-row{flex-wrap:wrap;margin-bottom:0}
+.name-row{display:flex;justify-content:flex-end;align-items:center;gap:var(--s2);margin-top:var(--s1)}
+.name-row .name-icon{font-size:0.79rem;opacity:0.7}
+.leg-name{flex:0 1 78%;min-width:150px;padding:var(--s1) var(--s3);border:1px dashed var(--rose-light);border-radius:var(--s2);background:#FFFFFF;font-size:0.79rem;color:var(--text-primary)}
+.leg-name:focus{outline:none;border-style:solid;border-color:var(--rose-medium);box-shadow:0 0 0 3px rgba(61,91,170,0.15)}
+.leg-name::placeholder{color:#9FACCB}
+.who-name{display:block;font-weight:700;color:var(--rose-dark);font-size:0.79rem;margin-bottom:2px}
+.who-name:empty{display:none}
+/* --- メリハリ調整 --- */
+.subtitle{color:#5A6A93 !important}
+header h1{font-size:2.618rem;line-height:1.128}
+.sec-title{border-left:5px solid var(--rose-dark);padding-left:var(--s3)}
+.hint{background:rgba(61,91,170,0.06);font-size:0.75rem}
+.payline-chip{font-size:0.75rem;font-weight:400;color:var(--text-secondary)}
+.pos-block h3{font-size:1.128rem}
+/* 目標残りポイント: ヒーロー表示 */
+.remain-line{text-align:center;font-size:1.128rem;padding:var(--s4);margin-top:var(--s3);border:2px solid transparent;background:linear-gradient(#FFFFFF,#FFFFFF) padding-box, var(--gold-gradient) border-box;border-radius:var(--s3)}
+.remain-line b{color:var(--rose-dark)}
+.remain-line strong{display:block;font-family:"Shippori Mincho",serif;font-size:4.236rem;line-height:1.128;letter-spacing:-0.022em;background:var(--gold-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;margin:var(--s1) 0}
+.remain-line .rl-raw{display:block;font-size:0.79rem;color:var(--text-secondary);font-family:"Zen Kaku Gothic New",sans-serif}
+@media (max-width:720px){ .remain-line strong{font-size:2.618rem} }
+/* --- 自社購入の備考 / 現状の小注記 --- */
+.field-note{list-style:none;margin-top:var(--s2);font-size:0.75rem;color:var(--text-secondary);background:rgba(61,91,170,0.06);border-radius:var(--s2);padding:var(--s2) var(--s3);line-height:1.618}
+.field-note li{margin:2px 0}
+.field-note b{color:var(--rose-dark)}
+.stat-sub{display:block;font-size:0.79rem;font-family:"Zen Kaku Gothic New",sans-serif;font-weight:400;color:var(--text-secondary);margin-top:var(--s1)}
+/* --- コース別残りカード --- */
+.remain-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--s3);margin-top:var(--s2)}
+.remain-card{background:#FFFFFF;border:1px solid var(--glass-border);border-radius:var(--s3);padding:var(--s3);text-align:center;box-shadow:0 4px 16px rgba(23,48,110,0.08)}
+.remain-card .rc-course{font-size:0.79rem;font-weight:700;color:var(--text-secondary)}
+.remain-card .rc-num{font-size:1rem;color:var(--text-primary);margin:var(--s1) 0}
+.remain-card .rc-num strong{font-family:"Shippori Mincho",serif;font-size:2.618rem;line-height:1.128;background:var(--gold-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;padding:0 var(--s1)}
+.remain-card .rc-detail{font-size:0.7rem;color:var(--text-secondary);line-height:1.618;border-top:1px dashed var(--rose-light);padding-top:var(--s2);margin-top:var(--s1)}
+.remain-card.is-na{opacity:0.55}
+/* --- ⑤ 月収ビジョン --- */
+.vision-card{border:2px solid transparent;background:linear-gradient(#FFFFFF,#FFFFFF) padding-box, var(--gold-gradient) border-box}
+.vision-total{text-align:center;padding:var(--s4) 0 var(--s3)}
+.vision-total .vt-label{display:block;font-size:0.79rem;font-weight:700;color:var(--text-secondary);letter-spacing:0.0618em}
+.vision-total strong{display:block;font-family:"Shippori Mincho",serif;font-size:4.236rem;line-height:1.128;letter-spacing:-0.022em;background:var(--gold-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;margin:var(--s2) 0}
+.vision-total .vt-sub{display:block;font-size:0.75rem;color:var(--text-secondary)}
+.vision-row{display:flex;justify-content:space-between;align-items:center;padding:var(--s2) var(--s3);background:#F3F6FC;border-radius:var(--s2);margin-bottom:var(--s1);font-size:0.79rem;color:var(--text-primary)}
+.vision-row b{font-family:"Shippori Mincho",serif;font-size:1.272rem;color:var(--rose-dark)}
+.vision-note{margin-top:var(--s3);font-size:0.79rem;color:var(--text-secondary);background:rgba(61,91,170,0.06);padding:var(--s3);border-radius:var(--s2);line-height:1.618}
+.vision-note b{color:var(--rose-dark)}
+.vision-empty{font-size:0.79rem;color:var(--text-secondary);text-align:center;padding:var(--s4)}
+@media (max-width:720px){ .vision-total strong{font-size:2.618rem} }
+/* --- メンバー名チップ入力 --- */
+.name-box{flex:0 1 78%;min-width:170px;display:flex;flex-wrap:wrap;gap:var(--s1);align-items:center;padding:var(--s1) var(--s2);border:1px dashed var(--rose-light);border-radius:var(--s2);background:#FFFFFF;cursor:text}
+.name-box:focus-within{border-style:solid;border-color:var(--rose-medium);box-shadow:0 0 0 3px rgba(61,91,170,0.15)}
+.name-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(61,91,170,0.10);border:1px solid rgba(61,91,170,0.25);color:var(--rose-dark);font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.name-chip .chip-del{border:none;background:none;cursor:pointer;color:inherit;font-size:0.7rem;padding:0;line-height:1;opacity:0.6}
+.name-chip .chip-del:hover{opacity:1}
+.name-entry{flex:1;min-width:120px;border:none;outline:none;background:transparent;font-size:0.79rem;color:var(--text-primary);padding:var(--s1) 0}
+.name-entry::placeholder{color:#9FACCB}
+.name-row{justify-content:flex-end}
+/* --- ④ 2ブロック/メンバー登録行 --- */
+.sub-head{font-family:"Shippori Mincho",serif;font-size:1.128rem;color:var(--rose-dark);margin:var(--s4) 0 var(--s2);font-weight:700}
+.hint-s{font-size:0.75rem;color:var(--text-secondary);margin-bottom:var(--s2);line-height:1.618}
+.member-reg-row{display:flex;gap:var(--s2);align-items:center;margin-bottom:var(--s2);flex-wrap:wrap;background:#F3F6FC;border-radius:var(--s2);padding:var(--s2)}
+.member-reg-row select,.member-reg-row input{padding:var(--s2);border:1px solid var(--rose-light);border-radius:var(--s2);background:#FFFFFF;font-size:0.79rem;color:var(--text-primary)}
+.member-reg-row .mr-member{flex:2;min-width:150px}
+.member-reg-row .mr-course{flex:1.2;min-width:120px}
+.member-reg-row .mr-count{width:64px;text-align:center}
+.member-reg-row .mr-del{border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-size:1rem;padding:0 var(--s1)}
+.member-reg-row .mr-del:hover{color:var(--rose-dark)}
+.add-row-btn{margin:var(--s1) 0 var(--s3);padding:var(--s2) var(--s3);border:1px dashed var(--rose-medium);background:#FFFFFF;color:var(--rose-dark);border-radius:var(--s2);font-size:0.79rem;font-weight:700;cursor:pointer;transition:all .2s}
+.add-row-btn:hover{background:rgba(61,91,170,0.06)}
+.mr-empty{font-size:0.75rem;color:var(--text-secondary);padding:var(--s2)}
+
+/* === 進捗トラッキング CSS === */
+.reg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--s3);margin-bottom:var(--s4)}
+.reg-item{text-align:center;background:rgba(255,255,255,.6);border:1px solid var(--glass-border);border-radius:var(--s3);padding:var(--s3)}
+.reg-item label{display:block;font-size:0.79rem;font-weight:700;color:var(--rose-dark);margin-bottom:var(--s2)}
+.reg-item .sub{display:block;font-size:0.7rem;color:var(--text-secondary);font-weight:400}
+.reg-item input{width:100%;text-align:center;padding:var(--s2);border:1px solid var(--rose-light);border-radius:var(--s2);background:rgba(255,255,255,.9);font-size:1.272rem;font-family:"Shippori Mincho",serif;color:var(--text-primary)}
+.prog-line{padding:var(--s3);margin-bottom:var(--s2);background:rgba(255,255,255,.7);border-radius:var(--s3);font-weight:700;color:var(--text-primary);box-shadow:0 2px 8px rgba(23,48,110,.1)}
+.prog-line.is-remain{font-family:"Shippori Mincho",serif;font-size:1.618rem;color:var(--rose-dark);background:rgba(61,91,170,.18);text-align:center}
+.prog-line.is-remain b{background:var(--gold-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:2.618rem}
+.prog-bar{width:100%;height:var(--s4);background:rgba(255,255,255,.7);border-radius:var(--s3);overflow:hidden;position:relative;box-shadow:inset 0 2px 4px rgba(0,0,0,.08);margin:var(--s3) 0}
+.prog-bar .fill{height:100%;background:var(--gold-gradient);width:0%;transition:width .5s ease;border-radius:var(--s3)}
+.prog-bar .lbl{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-weight:700;font-size:0.79rem;color:var(--text-primary)}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>QUALIA 配置シミュレーター</h1>
+    <p class="subtitle">目標タイトルまで、あと何人・どこに配置？</p>
+  </header>
+  
+  <section class="glass-card">
+    <h2 class="sec-title">① あなたの設定</h2>
+    <div class="seg-row" id="courseSeg">
+      <button class="seg-btn is-active" data-course="max">マックス</button>
+      <button class="seg-btn" data-course="standard">スタンダード</button>
+      <button class="seg-btn" data-course="basic">ベーシック</button>
+    </div>
+    <div class="field">
+      <label for="targetTitle">目標タイトル</label>
+      <select id="targetTitle"></select>
+    </div>
+    <div class="field">
+      <label for="simCourse">配置プランの換算コース</label>
+      <select id="simCourse">
+        <option value="80000">マックス（8万P）</option>
+        <option value="50000">スタンダード（5万P）</option>
+        <option value="20000">ベーシック（2万P）</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="selfPt">自社購入ポイント（毎月・タイトルPtに算入）</label>
+      <select id="selfPt">
+        <option value="20000" selected>2万P</option>
+        <option value="10000">1万P</option>
+      </select>
+      <ul class="field-note">
+        <li><b>1万P</b>：報酬をもらえる権利を満たします。</li>
+        <li><b>2万P以上</b>：その月の繰り越しの権利。パワーラインとペイラインを比べて余ったパワーライン側のポイントが、翌月以降に繰り越されます（インカムの未消化ポイントも繰り越し対象）。</li>
+      </ul>
+    </div>
+  </section>
+  
+  <section class="glass-card">
+    <h2 class="sec-title">② 現状の系列ポイント</h2>
+    <p class="hint">ホーム画面の「グループポイント」をタップし、配置組織の情報を確認してください。<b>001＝本ポジション、002＝インカム2、003＝インカム3</b>に対応しています。それぞれの各系列にある<b>「当月の報酬対象pt」</b>の数字をそのまま記入してください（<b>本ポジションも入力</b>してください。過去の繰り越しにより、インカム2＋3の合計と一致しない場合があります）。<br>大きい系列＝<b>パワーライン</b>：先月までの積み上げ（繰り越しポイント）が反映されている側です。毎月2万P以上の自社購入を続けることで翌月へ繰り越されます。<br>小さい系列＝<b>ペイライン</b>：タイトルPtに換算される側。<b>ペイラインがパワーラインに追いつくように埋めていきましょう。</b><br>メンバー名を入れると配置プランと進捗が<b>「誰から何人」</b>で表示されます。</p>
+    <div id="legsArea"></div>
+  </section>
+  
+  <section class="glass-card">
+    <h2 class="sec-title">現状</h2>
+    <div class="status-grid">
+      <div class="stat">
+        <span class="stat-label">合計タイトルPt</span>
+        <span class="stat-val" id="curTotal">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">現在のタイトル</span>
+        <span class="badge" id="curTitleName">-</span>
+      </div>
+    </div>
+    <div id="paylines" class="paylines"></div>
+    <div id="remainLine" class="remain-line"></div>
+  </section>
+  
+  <section class="glass-card plan-card">
+    <h2 class="sec-title">③ 配置プラン（自動計算）</h2>
+    <div id="planHead" class="plan-head"></div>
+    <div id="treeViz" class="tree-viz"></div>
+    <div id="planMap" class="plan-map"></div>
+    <div id="planAfter" class="plan-after"></div>
+    <p class="note">※パワーラインには先月までの<b>繰り越しポイント</b>が積み上がっています。新規登録は<b>ペイライン側に配置して、パワーラインに追いつく</b>ようにするとタイトルPtに換算されます。このプランは最小人数の目安です。</p>
+  </section>
+
+<section class="glass-card">
+  <h2 class="sec-title">④ 今月の進捗（決まった登録を記録）</h2>
+  <p class="hint">登録が決まるたびに件数を入力してください。全員がマックスとは限らないため、コース別に記録できます。決定分を反映した「残り件数」が自動で更新されます。</p>
+  <h3 class="sub-head">Ⓐ 自分で決めた登録</h3>
+  <div class="reg-grid">
+    <div class="reg-item">
+      <label>マックス<span class="sub">8万P/件</span></label>
+      <input id="regMax" type="number" min="0" value="0">
+    </div>
+    <div class="reg-item">
+      <label>スタンダード<span class="sub">5万P/件</span></label>
+      <input id="regStd" type="number" min="0" value="0">
+    </div>
+    <div class="reg-item">
+      <label>ベーシック<span class="sub">2万P/件</span></label>
+      <input id="regBasic" type="number" min="0" value="0">
+    </div>
+  </div>
+  <h3 class="sub-head">Ⓑ メンバーからの登録</h3>
+  <p class="hint-s">②で名前を記入したメンバーを選んで、決まったコースと件数を記録します。そのメンバーの系列に直接加算されます。</p>
+  <div id="memberRegs"></div>
+  <button type="button" id="addMemberReg" class="add-row-btn">＋ メンバーからの登録を追加</button>
+  <div id="progressArea"></div>
+</section>
+
+<section class="glass-card vision-card">
+  <h2 class="sec-title">⑤ 達成したら、いくら？</h2>
+  <div id="visionArea"></div>
+</section>
+</div>
+<script>
+const COURSES = { basic:{label:'ベーシック',yenCap:500000}, standard:{label:'スタンダード',yenCap:2900000}, max:{label:'マックス',yenCap:Infinity} };
+const BANDS = [ {maxPt:500000,rate:0.25},{maxPt:2666666,rate:0.20},{maxPt:Infinity,rate:0.15} ];
+const TITLES = [['ブロンズ',100000],['シルバー',200000],['ゴールド',400000],['ルビー',1000000],['サファイア',2000000],['アメジスト',3000000],['エメラルド',4000000],['パール',6000000],['ダイヤモンド',8000000],['ホワイトダイヤモンド',12000000],['ブラックダイヤモンド',16000000],['ゴールデンエンプレス',18400000]];
+
+function yenCapToPt(yenCap) {
+  if (yenCap === Infinity) return Infinity;
+  
+  let remaining = yenCap;
+  let totalPt = 0;
+  let prevMax = 0;
+  
+  for (const band of BANDS) {
+    const bandWidth = band.maxPt - prevMax;
+    const bandRevenue = bandWidth * band.rate;
+    
+    if (remaining <= bandRevenue) {
+      totalPt += remaining / band.rate;
+      return totalPt;
+    }
+    
+    remaining -= bandRevenue;
+    totalPt += bandWidth;
+    prevMax = band.maxPt;
+  }
+  
+  return Infinity;
+}
+
+function capPtFor(course) {
+  return yenCapToPt(COURSES[course].yenCap);
+}
+
+function titleTotal(course, legs) {
+  // NaN/undefinedを0に変換
+  const normalizedLegs = legs.map(leg => isNaN(leg) || leg === undefined ? 0 : leg);
+  
+  if (course === 'basic') {
+    const sum = normalizedLegs.reduce((acc, val) => acc + val, 0);
+    const max = Math.max(...normalizedLegs);
+    return Math.min(sum - max, capPtFor('basic'));
+  } else {
+    const cap = capPtFor(course);
+    return Math.min(normalizedLegs[0], normalizedLegs[1], cap) + 
+           Math.min(normalizedLegs[2], normalizedLegs[3], cap) + 
+           Math.min(normalizedLegs[4], normalizedLegs[5], cap);
+  }
+}
+
+function currentTitleName(total) {
+  for (let i = TITLES.length - 1; i >= 0; i--) {
+    if (total >= TITLES[i][1]) {
+      return TITLES[i][0];
+    }
+  }
+  return '未達';
+}
+
+function positionBreakdown(course, legs) {
+  // NaN/undefinedを0に変換
+  const normalizedLegs = legs.map(leg => isNaN(leg) || leg === undefined ? 0 : leg);
+  
+  if (course === 'basic') {
+    const sum = normalizedLegs.reduce((acc, val) => acc + val, 0);
+    const max = Math.max(...normalizedLegs);
+    return { pay: sum - max };
+  } else {
+    return {
+      mainPay: Math.min(normalizedLegs[0], normalizedLegs[1]),
+      inc2Pay: Math.min(normalizedLegs[2], normalizedLegs[3]),
+      inc3Pay: Math.min(normalizedLegs[4], normalizedLegs[5]),
+      mainL1: normalizedLegs[0],
+      mainL2: normalizedLegs[1],
+      inc2Sub: normalizedLegs[2] + normalizedLegs[3],
+      inc3Sub: normalizedLegs[4] + normalizedLegs[5]
+    };
+  }
+}
+
+function legLabels(course) {
+  if (course === 'basic') {
+    return ['系列1', '系列2', '系列3'];
+  } else {
+    return ['本ポジションの系列1', '本ポジションの系列2', 'インカム2の系列1', 'インカム2の系列2', 'インカム3の系列1', 'インカム3の系列2'];
+  }
+}
+
+function simulate(course, legs, targetPt, unit) {
+  // NaN/undefinedを0に変換
+  const normalizedLegs = legs.map(leg => isNaN(leg) || leg === undefined ? 0 : leg);
+  const work = [...normalizedLegs];
+  const placement = new Array(work.length).fill(0);
+  let guard = 6000;
+  
+  while (guard-- > 0) {
+    let bestIndex = -1;
+    let bestGain = 0;
+    
+    if (course === 'basic') {
+      // basicコースのシミュレーション
+      for (let i = 0; i < work.length; i++) {
+        const testLegs = [...work];
+        testLegs[i] += unit;
+        const currentTotal = titleTotal(course, work);
+        const newTotal = titleTotal(course, testLegs);
+        const gain = newTotal - currentTotal;
+        
+        if (gain > bestGain || (gain === bestGain && i < bestIndex)) {
+          bestGain = gain;
+          bestIndex = i;
+        }
+      }
+    } else {
+      // max/standardコースのシミュレーション
+      for (let i = 2; i < 6; i++) {
+        const testLegs = [...work];
+        testLegs[i] += unit;
+        
+        // 振り落とし処理
+        if (i === 2 || i === 3) {
+          testLegs[0] += unit;
+        } else {
+          testLegs[1] += unit;
+        }
+        
+        const currentTotal = titleTotal(course, work);
+        const newTotal = titleTotal(course, testLegs);
+        const gain = newTotal - currentTotal;
+        
+        if (gain > bestGain || (gain === bestGain && i < bestIndex)) {
+          bestGain = gain;
+          bestIndex = i;
+        }
+      }
+    }
+    
+    if (bestIndex === -1) {
+      // 改善がない場合でも配置を続行
+      if (course === 'basic') {
+        bestIndex = 0;
+      } else {
+        bestIndex = 2;
+      }
+    }
+    
+    // 配置を実行
+    if (course === 'basic') {
+      work[bestIndex] += unit;
+      placement[bestIndex]++;
+    } else {
+      work[bestIndex] += unit;
+      placement[bestIndex]++;
+      
+      // 振り落とし処理
+      if (bestIndex === 2 || bestIndex === 3) {
+        work[0] += unit;
+      } else {
+        work[1] += unit;
+      }
+    }
+    
+    // ターゲットに達したかチェック
+    if (titleTotal(course, work) >= targetPt) {
+      return {
+        placement,
+        finalLegs: work,
+        finalTitle: titleTotal(course, work),
+        regs: placement.reduce((acc, val) => acc + val, 0),
+        reached: true
+      };
+    }
+  }
+  
+  // ガード制限に達した場合
+  return {
+    placement,
+    finalLegs: work,
+    finalTitle: titleTotal(course, work),
+    regs: placement.reduce((acc, val) => acc + val, 0),
+    reached: false
+  };
+}
+
+window.QURIA = { yenCapToPt, capPtFor, titleTotal, currentTitleName, positionBreakdown, legLabels, simulate, COURSES, BANDS, TITLES };
+</script>
+<script>
+// UI配線JS
+// QURIA配置シミュレーター
+
+// 状態管理
+let currentCourse = 'max';
+
+// 閾値からタイトル名を引く（TITLESは[名前,閾値]の配列）
+function targetName(threshold) {
+  const t = QURIA.TITLES.find(x => x[1] === threshold);
+  return t ? t[0] : '—';
+}
+
+// ヘルパー関数
+function nameOf(idx){ const el=document.querySelector(`.leg-name[data-idx="${idx}"]`); return el ? el.value.trim() : ""; }
+function labelWithName(idx){ const base=QURIA.legLabels(currentCourse)[idx]||""; const n=nameOf(idx); return n ? `${n}（${base}）` : base; }
+function yenFromPayline(G){ if(!G || G<=0) return 0; let rate, cap; if(G<=500000){rate=0.25;cap=100000;} else if(G<=2666666){rate=0.20;cap=400000;} else {rate=0.15;cap=1500000;} return Math.min(Math.floor(G*rate), cap); }
+function fmtYen(n){ const man=n/10000; return (man % 1 === 0 ? man : man.toFixed(1)) + '万円'; }
+
+// チップ機能のヘルパー
+function addChip(nameBox, text) {
+  if (!text.trim()) return;
+  
+  const chip = document.createElement('span');
+  chip.className = 'name-chip';
+  chip.dataset.name = text;
+  chip.append('👥 ' + text);
+  
+  const delBtn = document.createElement('button');
+  delBtn.type = 'button';
+  delBtn.className = 'chip-del';
+  delBtn.textContent = '✕';
+  delBtn.addEventListener('click', () => {
+    chip.remove();
+    syncLegName(nameBox);
+  });
+  
+  chip.appendChild(delBtn);
+  
+  const nameEntry = nameBox.querySelector('.name-entry');
+  nameBox.insertBefore(chip, nameEntry);
+  
+  syncLegName(nameBox);
+}
+
+function syncLegName(nameBox) {
+  const chips = nameBox.querySelectorAll('.name-chip');
+  const names = Array.from(chips).map(chip => chip.dataset.name);
+  const legNameInput = nameBox.parentElement.querySelector('.leg-name');
+  legNameInput.value = names.join('、');
+  legNameInput.dispatchEvent(new Event('input', {bubbles:true}));
+}
+
+// 初期化処理
+function init() {
+  // タイトル選択肢の生成
+  const targetTitleSelect = document.getElementById('targetTitle');
+  targetTitleSelect.innerHTML = '';
+  // TITLES は [名前, 閾値] の配列
+  QURIA.TITLES.forEach(([name, threshold]) => {
+    const option = document.createElement('option');
+    option.value = threshold;
+    option.textContent = name;
+    targetTitleSelect.appendChild(option);
+  });
+  targetTitleSelect.value = '1000000'; // ルビー初期選択
+  
+  // コースセグメントの初期状態確認
+  document.querySelectorAll('#courseSeg .seg-btn').forEach(btn => {
+    btn.classList.toggle('is-active', btn.dataset.course === currentCourse);
+  });
+  
+  // 自社購入ポイントのchangeイベント登録
+  document.getElementById('selfPt').addEventListener('change', recompute);
+  
+  // 初期レンダリング
+  renderLegs(currentCourse);
+  recompute();
+}
+
+// コースに応じた系列入力のレンダリング
+function renderLegs(course) {
+  const legsArea = document.getElementById('legsArea');
+  legsArea.innerHTML = '';
+  
+  if (course === 'max' || course === 'standard') {
+    // 1つ目: 本ポジション（001）
+    const posBlock1 = document.createElement('div');
+    posBlock1.className = 'pos-block';
+    
+    const h3_1 = document.createElement('h3');
+    h3_1.textContent = '本ポジション（001）';
+    posBlock1.appendChild(h3_1);
+    
+    const legRow1 = createLegRow('本ポジション', 0, 1, false);
+    posBlock1.appendChild(legRow1);
+    
+    const legRow2 = createLegRow('本ポジション', 1, 2, false);
+    posBlock1.appendChild(legRow2);
+    
+    legsArea.appendChild(posBlock1);
+    
+    // 2つ目: インカム2（002）
+    const posBlock2 = document.createElement('div');
+    posBlock2.className = 'pos-block';
+    
+    const h3_2 = document.createElement('h3');
+    h3_2.textContent = 'インカム2（002）';
+    posBlock2.appendChild(h3_2);
+    
+    const legRow3 = createLegRow('インカム2', 2, 1, true);
+    posBlock2.appendChild(legRow3);
+    
+    const legRow4 = createLegRow('インカム2', 3, 2, true);
+    posBlock2.appendChild(legRow4);
+    
+    legsArea.appendChild(posBlock2);
+    
+    // 3つ目: インカム3（003）
+    const posBlock3 = document.createElement('div');
+    posBlock3.className = 'pos-block';
+    
+    const h3_3 = document.createElement('h3');
+    h3_3.textContent = 'インカム3（003）';
+    posBlock3.appendChild(h3_3);
+    
+    const legRow5 = createLegRow('インカム3', 4, 1, true);
+    posBlock3.appendChild(legRow5);
+    
+    const legRow6 = createLegRow('インカム3', 5, 2, true);
+    posBlock3.appendChild(legRow6);
+    
+    legsArea.appendChild(posBlock3);
+  } else if (course === 'basic') {
+    // メインポジションのブロック
+    const posBlock = document.createElement('div');
+    posBlock.className = 'pos-block';
+    
+    const h3 = document.createElement('h3');
+    h3.textContent = 'メインポジション';
+    posBlock.appendChild(h3);
+    
+    // ベーシック表示では系列2本のみ生成
+    [0, 1].forEach(legIdx => {
+      const legRow = createLegRow('メイン', legIdx, legIdx + 1, true);
+      posBlock.appendChild(legRow);
+    });
+    
+    legsArea.appendChild(posBlock);
+  }
+  
+  // 全入力フィールドにイベントリスナーを追加
+  document.querySelectorAll('.leg-input').forEach(input => {
+    input.addEventListener('input', recompute);
+  });
+  
+  // メンバー名入力フィールドにもイベントリスナーを追加
+  document.querySelectorAll('.leg-name').forEach(input => {
+    input.addEventListener('input', recompute);
+  });
+  
+  // チップ入力フィールドのイベントリスナーを追加
+  document.querySelectorAll('.name-entry').forEach(input => {
+    // keydownイベント
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (e.isComposing || e.keyCode === 229) return;
+        const nameBox = input.parentElement;
+        const value = input.value.trim();
+        if (value) {
+          addChip(nameBox, value);
+          input.value = '';
+        }
+      }
+    });
+    
+    // inputイベント
+    input.addEventListener('input', (e) => {
+      const nameBox = input.parentElement;
+      const value = input.value;
+      const delimiters = ['、', ',', '・'];
+      
+      for (const delimiter of delimiters) {
+        if (value.includes(delimiter)) {
+          const parts = value.split(delimiter);
+          const lastPart = parts.pop();
+          
+          parts.forEach(part => {
+            const trimmed = part.trim();
+            if (trimmed) {
+              addChip(nameBox, trimmed);
+            }
+          });
+          
+          input.value = lastPart;
+          break;
+        }
+      }
+    });
+  });
+}
+
+// 系列入力行の作成（dispNum=ポジション内の表示番号）
+function createLegRow(position, idx, dispNum, withNames) {
+  const legGroup = document.createElement('div');
+  legGroup.className = 'leg-group';
+
+  // 1段目: leg-row
+  const legRow = document.createElement('div');
+  legRow.className = 'leg-row';
+
+  const label = document.createElement('label');
+  label.textContent = `系列${dispNum || idx + 1}`;
+  legRow.appendChild(label);
+  
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'leg-input';
+  input.dataset.idx = idx;
+  input.min = '0';
+  input.value = '0';
+  legRow.appendChild(input);
+  
+  const tagSpan = document.createElement('span');
+  tagSpan.className = 'tag';
+  legRow.appendChild(tagSpan);
+  
+  legGroup.appendChild(legRow);
+  
+  // 2段目: name-row（withNamesがtrueの場合のみ作成）
+  if (withNames) {
+    const nameRow = document.createElement('div');
+    nameRow.className = 'name-row';
+    
+    const nameBox = document.createElement('div');
+    nameBox.className = 'name-box';
+    nameBox.dataset.idx = idx;
+    
+    const nameEntry = document.createElement('input');
+    nameEntry.type = 'text';
+    nameEntry.className = 'name-entry';
+    nameEntry.placeholder = 'メンバー名を入力してEnter';
+    nameEntry.maxLength = '20';
+    nameBox.appendChild(nameEntry);
+    
+    nameRow.appendChild(nameBox);
+    
+    const legName = document.createElement('input');
+    legName.type = 'hidden';
+    legName.className = 'leg-name';
+    legName.dataset.idx = idx;
+    nameRow.appendChild(legName);
+    
+    legGroup.appendChild(nameRow);
+  }
+  
+  return legGroup;
+}
+
+// 再計算処理
+function recompute() {
+  // 自社購入ポイントの取得
+  const selfPt = parseInt(document.getElementById("selfPt").value) || 0;
+  
+  // 系列値の取得
+  const legs = Array.from(document.querySelectorAll('.leg-input'))
+    .sort((a, b) => parseInt(a.dataset.idx) - parseInt(b.dataset.idx))
+    .map(input => parseInt(input.value) || 0);
+  
+  // ポジションブレークダウンの取得
+  const bd = QURIA.positionBreakdown(currentCourse, legs);
+  const total = QURIA.titleTotal(currentCourse, legs);
+  
+  // 合計とタイトル名の更新（自社購入ポイントを含む）
+  const totalAll = total + selfPt;
+  document.getElementById('curTotal').innerHTML = fmt(totalAll)+"（"+fmtMan(totalAll)+"）" + (selfPt > 0 ? '<span class="stat-sub">うち自社購入 '+fmtMan(selfPt)+'</span>' : '');
+  document.getElementById('curTitleName').textContent = 
+    QURIA.currentTitleName(totalAll);
+  
+  // ペイラインの更新
+  const paylines = document.getElementById('paylines');
+  paylines.innerHTML = '';
+  
+  if (currentCourse === 'max' || currentCourse === 'standard') {
+    // 本ポジション、インカム2、インカム3のペイライン
+    [
+      { text: '本ポジション ペイライン', value: bd.mainPay },
+      { text: 'インカム2 ペイライン', value: bd.inc2Pay },
+      { text: 'インカム3 ペイライン', value: bd.inc3Pay }
+    ].forEach(line => {
+      const chip = document.createElement('span');
+      chip.className = 'payline-chip';
+      chip.textContent = `${line.text} ${fmt(line.value)}`;
+      paylines.appendChild(chip);
+    });
+  } else if (currentCourse === 'basic') {
+    // 基本コースのペイライン
+    const chip = document.createElement('span');
+    chip.className = 'payline-chip';
+    chip.textContent = `ペイライン ${fmt(bd.pay)}`;
+    paylines.appendChild(chip);
+  }
+  
+  // タグの更新（max/standardのみ）
+  if (currentCourse === 'max' || currentCourse === 'standard') {
+    // 本ポジションのタグ
+    updateLegTags(0, 1);
+    // インカム2のタグ
+    updateLegTags(2, 3);
+    // インカム3のタグ
+    updateLegTags(4, 5);
+  }
+  
+  // 目標と残りの計算（自社購入ポイントを含む）
+  const target = parseInt(document.getElementById('targetTitle').value) || 0;
+  const remain = Math.max(0, target - totalAll);
+  
+  const remainLine = document.getElementById('remainLine');
+  if (remain > 0) {
+    remainLine.innerHTML = `目標 <b>${targetName(target)}</b> まで あと<strong>${fmtMan(remain)}</strong><span class="rl-raw">（${fmt(remain)} Pt）</span>`;
+  } else {
+    remainLine.innerHTML = `🎉 目標 <b>${targetName(target)}</b> は達成済みです`;
+  }
+  
+  // 配置プランの計算と表示
+  if (remain === 0) {
+    document.getElementById('planHead').textContent = 
+      '🎉 目標達成済みです。さらに上のタイトルを狙う場合は目標を変更してください。';
+    document.getElementById('treeViz').innerHTML = '';
+    document.getElementById('planMap').innerHTML = '';
+    document.getElementById('planAfter').innerHTML = '';
+    renderVision(legs);
+    return;
+  }
+  
+  const unit = parseInt(document.getElementById('simCourse').value) || 80000;
+  // 自社購入ポイントを差し引いた目標でシミュレーション
+  const effTarget = Math.max(0, target - selfPt);
+  const res = QURIA.simulate(currentCourse, legs, effTarget, unit);
+  
+  // 計画ヘッダーの更新
+  const planHead = document.getElementById('planHead');
+  const courseText = document.querySelector('#simCourse option:checked').textContent;
+  planHead.innerHTML = `あと <b>${res.regs}</b> 人で ${targetName(target)}<span style="display:block;font-size:1rem;font-family:'Zen Kaku Gothic New',sans-serif;color:var(--text-secondary)">${courseText} 換算</span>`;
+
+  if (!res.reached) {
+    planHead.innerHTML += '<br>※上限に達したため目標まで届きませんでした';
+  }
+  
+  // 配置マップの更新
+  const planMap = document.getElementById('planMap');
+  planMap.innerHTML = '';
+  
+  const legLabels = QURIA.legLabels(currentCourse);
+  let totalPlacement = 0;
+  
+  res.placement.forEach((count, idx) => {
+    if (count > 0) {
+      const mapRow = document.createElement('div');
+      mapRow.className = 'map-row';
+      
+      const who = document.createElement('div');
+      who.className = 'who';
+      who.textContent = labelWithName(idx);
+      
+      const cnt = document.createElement('div');
+      cnt.className = 'cnt';
+      cnt.textContent = `${fmt(count)}人`;
+      
+      mapRow.appendChild(who);
+      mapRow.appendChild(cnt);
+      planMap.appendChild(mapRow);
+      
+      totalPlacement += count;
+    }
+  });
+  
+  // 合計行の追加
+  if (totalPlacement > 0) {
+    const totalRow = document.createElement('div');
+    totalRow.className = 'map-row total';
+    
+    const who = document.createElement('div');
+    who.className = 'who';
+    who.textContent = '合計';
+    
+    const cnt = document.createElement('div');
+    cnt.className = 'cnt';
+    cnt.textContent = `${fmt(totalPlacement)}人`;
+    
+    totalRow.appendChild(who);
+    totalRow.appendChild(cnt);
+    planMap.appendChild(totalRow);
+  }
+  
+  // 配置後の見込み（自社購入ポイントを含む）
+  const planAfter = document.getElementById('planAfter');
+  const finalTotal = QURIA.titleTotal(currentCourse, res.finalLegs);
+  const finalTotalWithSelfPt = finalTotal + selfPt;
+  const finalTitle = QURIA.currentTitleName(finalTotalWithSelfPt);
+  planAfter.innerHTML = `<span class="payline-chip">この配置で 合計 ${fmtMan(finalTotalWithSelfPt)} → ${finalTitle} 達成見込み</span>`;
+  
+  // ツリーの更新
+  renderTree(currentCourse, legs, res.placement, res.finalLegs);
+  renderVision(res.finalLegs);
+}
+
+// 系列タグの更新
+function updateLegTags(idx1, idx2) {
+  const leg1 = document.querySelector(`.leg-input[data-idx="${idx1}"]`);
+  const leg2 = document.querySelector(`.leg-input[data-idx="${idx2}"]`);
+  const tag1 = leg1.parentElement.querySelector('.tag');
+  const tag2 = leg2.parentElement.querySelector('.tag');
+  
+  const val1 = parseInt(leg1.value) || 0;
+  const val2 = parseInt(leg2.value) || 0;
+  
+  // タグのクリア
+  tag1.className = 'tag';
+  tag2.className = 'tag';
+
+  // タグの設定（小さい方＝ペイライン／大きい方＝パワーライン）
+  if (val1 < val2) {
+    tag1.classList.add('tag-pay');  tag1.textContent = 'ペイライン';
+    tag2.classList.add('tag-power'); tag2.textContent = 'パワー';
+  } else if (val1 > val2) {
+    tag1.classList.add('tag-power'); tag1.textContent = 'パワー';
+    tag2.classList.add('tag-pay');  tag2.textContent = 'ペイライン';
+  } else {
+    // 同値の場合は両方ペイライン扱い
+    tag1.classList.add('tag-pay'); tag1.textContent = 'ペイライン';
+    tag2.classList.add('tag-pay'); tag2.textContent = 'ペイライン';
+  }
+}
+
+// ツリーのレンダリング
+function renderTree(course, curLegs, placement, finalLegs) {
+  const treeViz = document.getElementById('treeViz');
+  treeViz.innerHTML = '';
+  
+  if (course === 'basic') {
+    // 基本コースのツリー
+    const tree = document.createElement('div');
+    tree.className = 'tree basic-tree';
+    
+    const mainNode = document.createElement('div');
+    mainNode.className = 'tree-main';
+    mainNode.textContent = 'メインポジション';
+    tree.appendChild(mainNode);
+    
+    const legsContainer = document.createElement('div');
+    legsContainer.className = 'tree-legs';
+    
+    // ベーシック表示では系列2本のみ表示
+    [0, 1].forEach(idx => {
+      const legNode = createBasicLegNode(idx, curLegs[idx], placement[idx], finalLegs[idx]);
+      legsContainer.appendChild(legNode);
+    });
+    
+    tree.appendChild(legsContainer);
+    treeViz.appendChild(tree);
+  } else if (course === 'max' || course === 'standard') {
+    // マックス/スタンダードコースのツリー
+    const tree = document.createElement('div');
+    tree.className = 'tree';
+    
+    // Youノード
+    const youNode = document.createElement('div');
+    youNode.className = 'tree-you';
+    youNode.innerHTML = `本ポジション（001）<span class="pay">系列1 ${fmtMan(finalLegs[0])} / 系列2 ${fmtMan(finalLegs[1])}｜ペイライン ${fmtMan(Math.min(finalLegs[0], finalLegs[1]))}</span>`;
+    tree.appendChild(youNode);
+    
+    // インカムノード
+    const incomesContainer = document.createElement('div');
+    incomesContainer.className = 'tree-incomes';
+    
+    [0, 1].forEach(incomeIdx => {
+      const incNode = document.createElement('div');
+      incNode.className = 'tree-inc';
+      
+      const incHead = document.createElement('div');
+      incHead.className = 'inc-head';
+      
+      const incomeName = incomeIdx === 0 ? 'インカム2（002）' : 'インカム3（003）';
+      const legIdx1 = 2 + incomeIdx * 2;
+      const legIdx2 = legIdx1 + 1;
+      const minLeg = Math.min(finalLegs[legIdx1], finalLegs[legIdx2]);
+      
+      incHead.innerHTML = `${incomeName}<span class="pay">ペイ ${fmtMan(minLeg)}</span>`;
+      incNode.appendChild(incHead);
+      
+      const legsContainer = document.createElement('div');
+      legsContainer.className = 'inc-legs';
+      
+      [legIdx1, legIdx2].forEach(idx => {
+        const legNode = createLegNode(idx, curLegs[idx], placement[idx], finalLegs[idx], finalLegs);
+        legsContainer.appendChild(legNode);
+      });
+      
+      incNode.appendChild(legsContainer);
+      incomesContainer.appendChild(incNode);
+    });
+    
+    tree.appendChild(incomesContainer);
+    treeViz.appendChild(tree);
+  }
+}
+
+// 基本コースのレッグノード作成
+function createBasicLegNode(idx, cur, add, final) {
+  const node = document.createElement('div');
+  node.className = 'leg-node';
+  
+  // メンバー名の追加
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'who-name';
+  nameSpan.textContent = nameOf(idx);
+  node.appendChild(nameSpan);
+  
+  const curSpan = document.createElement('span');
+  curSpan.className = 'cur';
+  curSpan.textContent = `現${fmtMan(cur)}`;
+  node.appendChild(curSpan);
+  
+  if (add > 0) {
+    const addSpan = document.createElement('span');
+    addSpan.className = 'add';
+    addSpan.textContent = `+${fmt(add)}人`;
+    node.appendChild(addSpan);
+  }
+  
+  const finalSpan = document.createElement('span');
+  finalSpan.className = 'final';
+  finalSpan.textContent = `→${fmtMan(final)}`;
+  node.appendChild(finalSpan);
+  
+  return node;
+}
+
+// マックス/スタンダードコースのレッグノード作成
+function createLegNode(idx, cur, add, final, finalLegs) {
+  const node = document.createElement('div');
+  node.className = 'leg-node';
+  
+  // ペイラインかどうかの判定
+  const incomeIdx = Math.floor(idx / 2);
+  const otherIdx = incomeIdx * 2 + (idx % 2 === 0 ? 1 : 0);
+  if (finalLegs[idx] <= finalLegs[otherIdx]) {
+    node.classList.add('is-pay');
+  }
+  
+  // メンバー名の追加
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'who-name';
+  nameSpan.textContent = nameOf(idx);
+  node.appendChild(nameSpan);
+  
+  const curSpan = document.createElement('span');
+  curSpan.className = 'cur';
+  curSpan.textContent = `現${fmtMan(cur)}`;
+  node.appendChild(curSpan);
+  
+  if (add > 0) {
+    const addSpan = document.createElement('span');
+    addSpan.className = 'add';
+    addSpan.textContent = `+${fmt(add)}人`;
+    node.appendChild(addSpan);
+  }
+  
+  const finalSpan = document.createElement('span');
+  finalSpan.className = 'final';
+  finalSpan.textContent = `→${fmtMan(final)}`;
+  node.appendChild(finalSpan);
+  
+  return node;
+}
+
+// 数値フォーマッタ
+function fmt(n) {
+  return n.toLocaleString();
+}
+
+function fmtMan(n) {
+  return `${(n / 1e4).toFixed(1)}万P`;
+}
+
+// ビジョン表示のレンダリング
+function renderVision(vLegs) {
+  const area = document.getElementById('visionArea');
+  if(!area) return;
+  
+  if (currentCourse === 'max' || currentCourse === 'standard') {
+    const youPay=Math.min(vLegs[0],vLegs[1]); 
+    const inc2Pay=Math.min(vLegs[2],vLegs[3]); 
+    const inc3Pay=Math.min(vLegs[4],vLegs[5]);
+    const cap=QURIA.COURSES[currentCourse].yenCap;
+    const rows=[["本ポジション（001）", youPay],["インカム2（002）", inc2Pay],["インカム3（003）", inc3Pay]];
+    
+    let total=0;
+    const rowsWithYen = rows.map(([label,pt])=>{ 
+      const yen=Math.min(yenFromPayline(pt), cap); 
+      total += yen;
+      return [label, pt, yen]; 
+    });
+    
+    if (total <= 0) {
+      area.innerHTML='<p class="vision-empty">系列ポイントを入力すると、達成時の月収イメージがここに表示されます。</p>';
+      return;
+    }
+    
+    area.innerHTML = 
+      '<div class="vision-total"><span class="vt-label">この配置プランを達成したときの月収イメージ</span><strong>'+fmtYen(total)+'</strong><span class="vt-sub">ベースコミッション（基本給）のみ・毎月</span></div>'
+      + rowsWithYen.map(([label,pt,yen])=>{ return '<div class="vision-row"><span>'+label+' ペイライン '+fmtMan(pt)+'</span><b>'+fmtYen(yen)+'</b></div>'; }).join('')
+      + '<p class="vision-note">💡 これは<b>ベースコミッション（基本給）だけ</b>の金額です。マッチングボーナス・プロダクトフリーボーナス・サクセスボーナス・セービングボーナス・スポンサーシェアボーナスが、ここにさらに上乗せされます。</p>';
+  } else if (currentCourse === 'basic') {
+    const nums=vLegs.map(x=>x||0);
+    const pay=nums.reduce((a,b)=>a+b,0) - Math.max(...nums);
+    const yen=Math.min(yenFromPayline(pay), QURIA.COURSES.basic.yenCap);
+    const total=yen;
+    
+    if (total <= 0) {
+      area.innerHTML='<p class="vision-empty">系列ポイントを入力すると、達成時の月収イメージがここに表示されます。</p>';
+      return;
+    }
+    
+    area.innerHTML = 
+      '<div class="vision-total"><span class="vt-label">この配置プランを達成したときの月収イメージ</span><strong>'+fmtYen(total)+'</strong><span class="vt-sub">ベースコミッション（基本給）のみ・毎月</span></div>'
+      + '<div class="vision-row"><span>メインポジション ペイライン '+fmtMan(pay)+'</span><b>'+fmtYen(yen)+'</b></div>'
+      + '<p class="vision-note">💡 これは<b>ベースコミッション（基本給）だけ</b>の金額です。マッチングボーナス・プロダクトフリーボーナス・サクセスボーナス・セービングボーナス・スポンサーシェアボーナスが、ここにさらに上乗せされます。</p>';
+  }
+}
+
+// コース切替イベント
+document.getElementById('courseSeg').addEventListener('click', (e) => {
+  if (e.target.classList.contains('seg-btn')) {
+    // アクティブ状態の更新
+    document.querySelectorAll('#courseSeg .seg-btn').forEach(btn => {
+      btn.classList.toggle('is-active', btn === e.target);
+    });
+    
+    // 現在コースの更新
+    currentCourse = e.target.dataset.course;
+    
+    // レンダリングの更新
+    renderLegs(currentCourse);
+    recompute();
+  }
+});
+
+// タイトル変更イベント
+document.getElementById('targetTitle').addEventListener('change', recompute);
+
+// シミュレーションコース変更イベント
+document.getElementById('simCourse').addEventListener('change', recompute);
+
+// 起動
+init();
+</script>
+<script>
+(function(){
+  // 進捗トラッキングモジュール
+  const init = function() {
+    // DOM要素の取得
+    const regMax = document.getElementById('regMax');
+    const regStd = document.getElementById('regStd');
+    const regBasic = document.getElementById('regBasic');
+    const courseSeg = document.getElementById('courseSeg');
+    const targetTitle = document.getElementById('targetTitle');
+    const selfPt = document.getElementById('selfPt');
+    const legsArea = document.getElementById('legsArea');
+    const progressArea = document.getElementById('progressArea');
+    const memberRegs = document.getElementById('memberRegs');
+    const addMemberReg = document.getElementById('addMemberReg');
+    
+    // イベントリスナーの登録
+    if (regMax) regMax.addEventListener('input', function(){ refreshMemberOptions(); update(); });
+    if (regStd) regStd.addEventListener('input', function(){ refreshMemberOptions(); update(); });
+    if (regBasic) regBasic.addEventListener('input', function(){ refreshMemberOptions(); update(); });
+    if (legsArea) legsArea.addEventListener('input', function(){ refreshMemberOptions(); update(); });
+    if (targetTitle) targetTitle.addEventListener('change', update);
+    if (selfPt) selfPt.addEventListener('change', update);
+    if (courseSeg) courseSeg.addEventListener('click', function() {
+      setTimeout(update, 0);
+    });
+    if (addMemberReg) addMemberReg.addEventListener('click', addMemberRow);
+    
+    // 初回実行
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(update, 0);
+      });
+    } else {
+      setTimeout(update, 0);
+    }
+  };
+  
+  // コース取得関数
+  const getCourse = function() {
+    const courseSeg = document.getElementById('courseSeg');
+    const activeBtn = courseSeg ? courseSeg.querySelector('.seg-btn.is-active') : null;
+    return activeBtn ? activeBtn.dataset.course : 'max';
+  };
+  
+  // メンバー選択オプション構築関数
+  const buildMemberOptions = function() {
+    const legsArea = document.getElementById('legsArea');
+    if (!legsArea) return [];
+    
+    const legNames = legsArea.querySelectorAll('.leg-name');
+    const options = [];
+    
+    legNames.forEach(name => {
+      const idx = parseInt(name.dataset.idx);
+      const value = name.value.trim();
+      
+      if (value) {
+        const names = value.split(/[、,・/]/).map(n => n.trim()).filter(n => n);
+        const course = getCourse();
+        
+        names.forEach(n => {
+          options.push({
+            legIdx: idx,
+            label: `${n}（${QURIA.legLabels(course)[idx]}）`
+          });
+        });
+      }
+    });
+    
+    return options;
+  };
+  
+  // メンバー行追加関数
+  const addMemberRow = function() {
+    const memberRegs = document.getElementById('memberRegs');
+    if (!memberRegs) return;
+    
+    const opts = buildMemberOptions();
+    
+    if (opts.length === 0) {
+      memberRegs.innerHTML = '<p class="mr-empty">②でメンバー名を記入すると、ここで選択できるようになります。</p>';
+      return;
+    }
+    
+    // 既存の空表示を削除
+    const empty = memberRegs.querySelector('.mr-empty');
+    if (empty) empty.remove();
+    
+    // 行を作成
+    const row = document.createElement('div');
+    row.className = 'member-reg-row';
+    
+    // メンバー選択
+    const memberSelect = document.createElement('select');
+    memberSelect.className = 'mr-member';
+    
+    opts.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.legIdx;
+      option.textContent = opt.label;
+      memberSelect.appendChild(option);
+    });
+    
+    // コース選択
+    const courseSelect = document.createElement('select');
+    courseSelect.className = 'mr-course';
+    
+    const courses = [
+      { value: 80000, text: 'マックス（8万P）' },
+      { value: 50000, text: 'スタンダード（5万P）' },
+      { value: 20000, text: 'ベーシック（2万P）' }
+    ];
+    
+    courses.forEach(course => {
+      const option = document.createElement('option');
+      option.value = course.value;
+      option.textContent = course.text;
+      courseSelect.appendChild(option);
+    });
+    
+    // 数量入力
+    const countInput = document.createElement('input');
+    countInput.type = 'number';
+    countInput.min = 0;
+    countInput.value = 1;
+    countInput.className = 'mr-count';
+    
+    // 削除ボタン
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.textContent = '✕';
+    delBtn.className = 'mr-del';
+    delBtn.addEventListener('click', function() {
+      row.remove();
+      update();
+    });
+    
+    // イベントリスナー
+    memberSelect.addEventListener('change', update);
+    courseSelect.addEventListener('change', update);
+    countInput.addEventListener('input', update);
+    
+    // 行に要素を追加
+    row.appendChild(memberSelect);
+    row.appendChild(courseSelect);
+    row.appendChild(countInput);
+    row.appendChild(delBtn);
+    
+    // 行を追加
+    memberRegs.appendChild(row);
+    
+    // 更新
+    update();
+  };
+  
+  // メンバー選択オプション更新関数
+  const refreshMemberOptions = function() {
+    const memberRegs = document.getElementById('memberRegs');
+    if (!memberRegs) return;
+    
+    const rows = memberRegs.querySelectorAll('.member-reg-row');
+    const opts = buildMemberOptions();
+    
+    rows.forEach(row => {
+      const memberSelect = row.querySelector('.mr-member');
+      if (!memberSelect) return;
+      
+      // 現在の選択値を記憶
+      const currentValue = memberSelect.value;
+      
+      // オプションを再構築
+      memberSelect.innerHTML = '';
+      
+      opts.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.legIdx;
+        option.textContent = opt.label;
+        memberSelect.appendChild(option);
+      });
+      
+      // 以前の値があれば復元
+      if (opts.some(opt => opt.legIdx == currentValue)) {
+        memberSelect.value = currentValue;
+      } else if (opts.length > 0) {
+        memberSelect.value = opts[0].legIdx;
+      }
+    });
+  };
+  
+  // ヘルパー関数
+  const man = (n) => ((n||0)/1e4).toFixed(1)+'万P';
+  
+  function buildProgressTree(course, origLegs, addedPt, afterLegs, nameOf) {
+    // legNodeHtml 内部関数
+    const legNodeHtml = (i, pairOtherIdx) => {
+      return '<div class="leg-node'+(afterLegs[i] <= afterLegs[pairOtherIdx] ? ' is-pay' : '')+'">'
+        + (nameOf(i) ? '<span class="who-name">'+nameOf(i)+'</span>' : '')
+        + '<span class="cur">現 '+man(origLegs[i])+'</span>'
+        + (addedPt[i] > 0 ? '<span class="add">+'+man(addedPt[i])+'</span>' : '')
+        + '<span class="final">→ '+man(afterLegs[i])+'</span></div>';
+    };
+    
+    // コース別にHTMLを生成
+    if (course !== 'basic') {
+      return '<div class="tree-viz"><div class="tree">'
+        + '<div class="tree-you">本ポジション（001）<span class="pay">系列1 '+man(afterLegs[0])+' / 系列2 '+man(afterLegs[1])+'｜ペイライン '+man(Math.min(afterLegs[0]||0, afterLegs[1]||0))+'</span></div>'
+        + '<div class="tree-incomes">'
+        +   '<div class="tree-inc"><div class="inc-head">インカム2（002）<span class="pay">ペイ '+man(Math.min(afterLegs[2]||0, afterLegs[3]||0))+'</span></div><div class="inc-legs">'+legNodeHtml(2,3)+legNodeHtml(3,2)+'</div></div>'
+        +   '<div class="tree-inc"><div class="inc-head">インカム3（003）<span class="pay">ペイ '+man(Math.min(afterLegs[4]||0, afterLegs[5]||0))+'</span></div><div class="inc-legs">'+legNodeHtml(4,5)+legNodeHtml(5,4)+'</div></div>'
+        + '</div></div></div>';
+    } else {
+      return '<div class="tree-viz"><div class="tree"><div class="tree-main">メインポジション</div><div class="tree-legs">'+legNodeHtml(0,1)+legNodeHtml(1,0)+'</div></div></div>';
+    }
+  }
+  
+  // 更新処理
+  const update = function() {
+    // DOM要素の再取得（動的生成対応）
+    const regMax = document.getElementById('regMax');
+    const regStd = document.getElementById('regStd');
+    const regBasic = document.getElementById('regBasic');
+    const courseSeg = document.getElementById('courseSeg');
+    const targetTitle = document.getElementById('targetTitle');
+    const selfPt = document.getElementById('selfPt');
+    const legsArea = document.getElementById('legsArea');
+    const progressArea = document.getElementById('progressArea');
+    
+    // 必要な要素がなければ終了
+    if (!regMax || !regStd || !regBasic || !courseSeg || !targetTitle || !selfPt || !legsArea || !progressArea) {
+      return;
+    }
+    
+    // 1. コースの取得
+    const course = getCourse();
+    
+    // 2. legs配列の取得
+    const legInputs = legsArea.querySelectorAll('.leg-input');
+    const legs = Array.from(legInputs).map(input => {
+      const val = parseInt(input.value) || 0;
+      return val;
+    });
+    
+    // 元の値を保存
+    const origLegs = [...legs];
+    
+    // 3. ターゲットの取得と自社購入ポイントの取得
+    const target = parseInt(targetTitle.value) || 0;
+    const selfPtValue = parseInt(selfPt.value) || 0;
+    const effTarget = Math.max(0, target - selfPtValue);
+    const targetName = target > 0 && QURIA.TITLES 
+      ? QURIA.TITLES.find(t => t[1] === target)?.[0] || '—'
+      : '—';
+    
+    // 4. 決定件数の取得とunits配列の作成
+    const nMax = parseInt(regMax.value) || 0;
+    const nStd = parseInt(regStd.value) || 0;
+    const nBasic = parseInt(regBasic.value) || 0;
+    
+    // メンバー起点の登録を反映
+    const memberRows = document.querySelectorAll('.member-reg-row');
+    const memberAdded = new Array(legs.length).fill(0);
+    let nMaxMember = 0;
+    let nStdMember = 0;
+    let nBasicMember = 0;
+    
+    // 親系列対応マップ
+    const PARENT = {2:0, 3:0, 4:1, 5:1};
+    
+    memberRows.forEach(row => {
+      const memberSelect = row.querySelector('.mr-member');
+      const courseSelect = row.querySelector('.mr-course');
+      const countInput = row.querySelector('.mr-count');
+      
+      if (memberSelect && courseSelect && countInput) {
+        const legIdx = parseInt(memberSelect.value);
+        const unit = parseInt(courseSelect.value);
+        const count = parseInt(countInput.value) || 0;
+        
+        if (count > 0 && legIdx >= 0 && legIdx < legs.length) {
+          legs[legIdx] += unit * count;
+          memberAdded[legIdx] += unit * count;
+          
+          // 親系列への反映
+          if (course !== 'basic' && PARENT[legIdx] !== undefined) {
+            legs[PARENT[legIdx]] += unit * count;
+          }
+          
+          if (unit === 80000) nMaxMember += count;
+          else if (unit === 50000) nStdMember += count;
+          else if (unit === 20000) nBasicMember += count;
+        }
+      }
+    });
+    
+    // 合計件数を計算
+    const totalNMax = nMax + nMaxMember;
+    const totalNStd = nStd + nStdMember;
+    const totalNBasic = nBasic + nBasicMember;
+    
+    // 自分起点のunits配列を作成
+    const ownMax = parseInt(regMax.value) || 0;
+    const ownStd = parseInt(regStd.value) || 0;
+    const ownBasic = parseInt(regBasic.value) || 0;
+    
+    const units = [];
+    for (let i = 0; i < ownMax; i++) units.push(80000);
+    for (let i = 0; i < ownStd; i++) units.push(50000);
+    for (let i = 0; i < ownBasic; i++) units.push(20000);
+    units.sort((a, b) => b - a);
+    
+    // 5. 貪欲配置で決定分を反映
+    const work = [...legs];
+    const addedPt = new Array(legs.length).fill(0);
+    for (let i = 0; i < memberAdded.length; i++) addedPt[i] += memberAdded[i];
+    
+    for (const unit of units) {
+      let maxIncrease = -Infinity;
+      let bestIndex = 0;
+      
+      // 候補範囲の設定
+      const startIdx = course === 'basic' ? 0 : 2;
+      const endIdx = legs.length;
+      
+      for (let i = startIdx; i < endIdx; i++) {
+        const testLegs = [...work];
+        testLegs[i] += unit;
+        
+        // 親系列への反映
+        if (course !== 'basic' && PARENT[i] !== undefined) {
+          testLegs[PARENT[i]] += unit;
+        }
+        
+        const currentTotal = QURIA.titleTotal(course, work);
+        const newTotal = QURIA.titleTotal(course, testLegs);
+        const increase = newTotal - currentTotal;
+        
+        if (increase > maxIncrease || (increase === maxIncrease && i < bestIndex)) {
+          maxIncrease = increase;
+          bestIndex = i;
+        }
+      }
+      
+      // 最適な位置に配置
+      work[bestIndex] += unit;
+      if (course !== 'basic' && PARENT[bestIndex] !== undefined) {
+        work[PARENT[bestIndex]] += unit;
+      }
+      addedPt[bestIndex] += unit;
+    }
+    
+    const afterLegs = work;
+    const afterTotal = QURIA.titleTotal(course, afterLegs);
+    const afterTitle = QURIA.currentTitleName(afterTotal);
+    
+    // 6. 決定分の配置を可視化
+    let placementText = '';
+    const placementLabels = QURIA.legLabels(course);
+    const placements = [];
+    
+    // ヘルパー関数を追加
+    const nameOf = (idx) => { const el = legsArea.querySelector(`.leg-name[data-idx="${idx}"]`); return el ? el.value.trim() : ""; };
+    const labelWithName = (idx) => { const base = QURIA.legLabels(course)[idx] || ""; const n = nameOf(idx); return n ? `${n}（${base}）` : base; };
+    
+    for (let i = 0; i < addedPt.length; i++) {
+      if (addedPt[i] > 0) {
+        placements.push(`${labelWithName(i)} +${(addedPt[i] / 1e4).toFixed(1)}万P`);
+      }
+    }
+    
+    if (placements.length > 0) {
+      placementText = `決定分の配置: ${placements.join(' ／ ')}`;
+    }
+    
+    // 7. 残りの計算（コース別）
+    const REG_COURSES = [["マックス",80000],["スタンダード",50000],["ベーシック",20000]];
+    let remainText = '';
+    
+    if (afterTotal >= effTarget) {
+      remainText = `<div class="prog-line is-remain">🎉 目標 ${targetName} 達成ペースです！</div>`;
+    } else {
+      remainText = `<div class="prog-line">目標 ${targetName} まで（いずれか単独で登録した場合）</div>`;
+      
+      remainText += '<div class="remain-cards">';
+      
+      for (const [courseName, unitPt] of REG_COURSES) {
+        const res = QURIA.simulate(course, afterLegs, effTarget, unitPt);
+        
+        if (res.reached) {
+          const placements = [];
+          for (let i = 0; i < res.placement.length; i++) {
+            if (res.placement[i] > 0) {
+              placements.push(`${labelWithName(i)}×${res.placement[i]}`);
+            }
+          }
+          
+          remainText += '<div class="remain-card"><div class="rc-course">'+courseName+'のみなら</div><div class="rc-num">あと<strong>'+res.regs+'</strong>件</div><div class="rc-detail">'+placements.join('、')+'</div></div>';
+        } else {
+          remainText += '<div class="remain-card is-na"><div class="rc-course">'+courseName+'のみなら</div><div class="rc-num">—</div><div class="rc-detail">上限のため単独では届きません</div></div>';
+        }
+      }
+      
+      remainText += '</div>';
+    }
+    
+    // 8. 描画
+    let html = '';
+    
+    // 決定サマリ行
+    const totalDecided = 80000 * totalNMax + 50000 * totalNStd + 20000 * totalNBasic;
+    let decidedSummary = '決定済み: ';
+    
+    if (totalNMax > 0) decidedSummary += `マックス${totalNMax}件`;
+    if (totalNStd > 0) decidedSummary += (totalNMax > 0 ? '・' : '') + `スタンダード${totalNStd}件`;
+    if (totalNBasic > 0) decidedSummary += ((totalNMax > 0 || totalNStd > 0) ? '・' : '') + `ベーシック${totalNBasic}件`;
+    
+    if (totalDecided > 0) {
+      decidedSummary += `（計 ${totalDecided.toLocaleString()}Pt）`;
+    } else {
+      decidedSummary += 'まだありません';
+    }
+    
+    html += `<div class="prog-line">${decidedSummary}</div>`;
+    
+    // 反映後の合計
+    const afterTotalFormatted = (afterTotal + selfPtValue).toLocaleString();
+    const afterTotalTenP = ((afterTotal + selfPtValue) / 1e4).toFixed(1) + '万P';
+    html += `<div class="prog-line">決定分を反映した合計タイトルPt: ${afterTotalFormatted}（${afterTotalTenP}）${selfPtValue > 0 ? '（うち自社購入 ' + (selfPtValue / 1e4).toFixed(1) + '万P）' : ''}</div>`;
+    
+    // 決定分の配置
+    if (placementText) {
+      html += `<div class="prog-line">${placementText}</div>`;
+    }
+    
+    // 進捗ツリー
+    html += buildProgressTree(course, origLegs, addedPt, afterLegs, nameOf);
+    
+    // 進捗バー
+    const progress = target > 0 ? Math.min(100, Math.round((afterTotal + selfPtValue) / target * 100)) : 0;
+    html += `<div class="prog-bar"><div class="fill" style="width:${progress}%"></div><span class="lbl">${progress}%</span></div>`;
+    
+    // 残り行
+    html += remainText;
+    
+    progressArea.innerHTML = html;
+  };
+  
+  // モジュールの初期化
+  if (typeof QURIA !== 'undefined') {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
