@@ -714,6 +714,12 @@
 .leg-name{flex:0 1 78%;min-width:150px;padding:var(--s1) var(--s3);border:1px dashed var(--rose-light);border-radius:var(--s2);background:#FFFFFF;font-size:0.79rem;color:var(--text-primary)}
 .leg-name:focus{outline:none;border-style:solid;border-color:var(--rose-medium);box-shadow:0 0 0 3px rgba(61,91,170,0.15)}
 .leg-name::placeholder{color:#9FACCB}
+.skip-row{display:flex;justify-content:flex-end;margin-top:var(--s1)}
+.skip-label{display:inline-flex;align-items:center;gap:var(--s1);font-size:0.79rem;color:var(--text-secondary);cursor:pointer;user-select:none}
+.skip-label input{accent-color:#3D5BAA;width:1rem;height:1rem;margin:0}
+.leg-group.is-skipped .leg-row,.leg-group.is-skipped .name-row{opacity:0.45}
+.leg-group.is-skipped .leg-row label{text-decoration:line-through}
+.skip-note{display:block;font-size:0.79rem;font-family:'Zen Kaku Gothic New',sans-serif;color:var(--text-secondary);margin-top:var(--s1)}
 .who-name{display:block;font-weight:700;color:var(--rose-dark);font-size:0.79rem;margin-bottom:2px}
 .who-name:empty{display:none}
 /* --- メリハリ調整 --- */
@@ -1017,7 +1023,7 @@ function legLabels(course) {
   }
 }
 
-function simulate(course, legs, targetPt, unit) {
+function simulate(course, legs, targetPt, unit, excluded = []) {
   // NaN/undefinedを0に変換
   const normalizedLegs = legs.map(leg => isNaN(leg) || leg === undefined ? 0 : leg);
   const work = [...normalizedLegs];
@@ -1031,6 +1037,9 @@ function simulate(course, legs, targetPt, unit) {
     if (course === 'basic') {
       // basicコースのシミュレーション
       for (let i = 0; i < work.length; i++) {
+        // 除外された系列はスキップ
+        if (excluded.includes(i)) continue;
+        
         const testLegs = [...work];
         testLegs[i] += unit;
         const currentTotal = titleTotal(course, work);
@@ -1045,6 +1054,9 @@ function simulate(course, legs, targetPt, unit) {
     } else {
       // max/standardコースのシミュレーション
       for (let i = 2; i < 6; i++) {
+        // 除外された系列はスキップ
+        if (excluded.includes(i)) continue;
+        
         const testLegs = [...work];
         testLegs[i] += unit;
         
@@ -1071,7 +1083,24 @@ function simulate(course, legs, targetPt, unit) {
       if (course === 'basic') {
         bestIndex = 0;
       } else {
-        bestIndex = 2;
+        // 除外されていない最初のインデックスを探す
+        for (let i = 2; i < 6; i++) {
+          if (!excluded.includes(i)) {
+            bestIndex = i;
+            break;
+          }
+        }
+        
+        // 全てのインデックスが除外されている場合はスキップ
+        if (bestIndex === -1) {
+          return {
+            placement,
+            finalLegs: work,
+            finalTitle: titleTotal(course, work),
+            regs: placement.reduce((acc, val) => acc + val, 0),
+            reached: false
+          };
+        }
       }
     }
     
@@ -1130,6 +1159,7 @@ function targetName(threshold) {
 
 // ヘルパー関数
 function nameOf(idx){ const el=document.querySelector(`.leg-name[data-idx="${idx}"]`); return el ? el.value.trim() : ""; }
+function getExcludedLegs(){ return Array.from(document.querySelectorAll('.leg-skip:checked')).map(el=>parseInt(el.dataset.idx)); }
 function labelWithName(idx){ const base=QURIA.legLabels(currentCourse)[idx]||""; const n=nameOf(idx); return n ? `${n}（${base}）` : base; }
 function yenFromPayline(G){ if(!G || G<=0) return 0; let rate, cap; if(G<=500000){rate=0.25;cap=100000;} else if(G<=2666666){rate=0.20;cap=400000;} else {rate=0.15;cap=1500000;} return Math.min(Math.floor(G*rate), cap); }
 function fmtYen(n){ const man=n/10000; return (man % 1 === 0 ? man : man.toFixed(1)) + '万円'; }
@@ -1276,6 +1306,19 @@ function renderLegs(course) {
     input.addEventListener('input', recompute);
   });
   
+  // 除外チェックボックスにもイベントリスナーを追加
+  document.querySelectorAll('.leg-skip').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const legGroup = this.closest('.leg-group');
+      if (this.checked) {
+        legGroup.classList.add('is-skipped');
+      } else {
+        legGroup.classList.remove('is-skipped');
+      }
+      recompute();
+    });
+  });
+  
   // チップ入力フィールドのイベントリスナーを追加
   document.querySelectorAll('.name-entry').forEach(input => {
     // keydownイベント
@@ -1370,6 +1413,26 @@ function createLegRow(position, idx, dispNum, withNames) {
     nameRow.appendChild(legName);
     
     legGroup.appendChild(nameRow);
+    
+    // 3段目: skip-row（idx >= 2の場合のみ作成）
+    if (idx >= 2) {
+      const skipRow = document.createElement('div');
+      skipRow.className = 'skip-row';
+      
+      const skipLabel = document.createElement('label');
+      skipLabel.className = 'skip-label';
+      
+      const skipCheckbox = document.createElement('input');
+      skipCheckbox.type = 'checkbox';
+      skipCheckbox.className = 'leg-skip';
+      skipCheckbox.dataset.idx = idx;
+      
+      skipLabel.appendChild(skipCheckbox);
+      skipLabel.appendChild(document.createTextNode('この系列は使わない（配置しない）'));
+      
+      skipRow.appendChild(skipLabel);
+      legGroup.appendChild(skipRow);
+    }
   }
   
   return legGroup;
@@ -1454,7 +1517,7 @@ function recompute() {
   const unit = parseInt(document.getElementById('simCourse').value) || 80000;
   // 自社購入ポイントを差し引いた目標でシミュレーション
   const effTarget = Math.max(0, target - selfPt);
-  const res = QURIA.simulate(currentCourse, legs, effTarget, unit);
+  const res = QURIA.simulate(currentCourse, legs, effTarget, unit, getExcludedLegs());
   
   // 計画ヘッダーの更新
   const planHead = document.getElementById('planHead');
@@ -1463,6 +1526,11 @@ function recompute() {
 
   if (!res.reached) {
     planHead.innerHTML += '<br>※上限に達したため目標まで届きませんでした';
+  }
+  // 除外系列の注記を追加
+  const excludedLegs = getExcludedLegs();
+  if (excludedLegs.length > 0) {
+    planHead.innerHTML += '<span class="skip-note">配置対象外: ' + excludedLegs.map(idx => labelWithName(idx)).join('、') + '</span>';
   }
   
   // 配置マップの更新
@@ -1795,6 +1863,7 @@ init();
     if (regStd) regStd.addEventListener('input', function(){ refreshMemberOptions(); update(); });
     if (regBasic) regBasic.addEventListener('input', function(){ refreshMemberOptions(); update(); });
     if (legsArea) legsArea.addEventListener('input', function(){ refreshMemberOptions(); update(); });
+    if (legsArea) legsArea.addEventListener('change', function(){ refreshMemberOptions(); update(); });
     if (targetTitle) targetTitle.addEventListener('change', update);
     if (selfPt) selfPt.addEventListener('change', update);
     if (courseSeg) courseSeg.addEventListener('click', function() {
@@ -2090,6 +2159,9 @@ init();
     const addedPt = new Array(legs.length).fill(0);
     for (let i = 0; i < memberAdded.length; i++) addedPt[i] += memberAdded[i];
     
+    // 除外された系列を取得
+    const excluded = Array.from(legsArea.querySelectorAll('.leg-skip:checked')).map(el => parseInt(el.dataset.idx));
+    
     for (const unit of units) {
       let maxIncrease = -Infinity;
       let bestIndex = 0;
@@ -2098,7 +2170,22 @@ init();
       const startIdx = course === 'basic' ? 0 : 2;
       const endIdx = legs.length;
       
+      // 除外されていない最初のインデックスを探す（候補が無ければこの件は配置しない）
+      if (course !== 'basic') {
+        bestIndex = -1;
+        for (let i = startIdx; i < endIdx; i++) {
+          if (!excluded.includes(i)) {
+            bestIndex = i;
+            break;
+          }
+        }
+        if (bestIndex === -1) continue;
+      }
+      
       for (let i = startIdx; i < endIdx; i++) {
+        // 除外された系列はスキップ
+        if (course !== 'basic' && excluded.includes(i)) continue;
+        
         const testLegs = [...work];
         testLegs[i] += unit;
         
@@ -2160,7 +2247,7 @@ init();
       remainText += '<div class="remain-cards">';
       
       for (const [courseName, unitPt] of REG_COURSES) {
-        const res = QURIA.simulate(course, afterLegs, effTarget, unitPt);
+        const res = QURIA.simulate(course, afterLegs, effTarget, unitPt, excluded);
         
         if (res.reached) {
           const placements = [];
